@@ -494,6 +494,61 @@ docker system prune
 
 ---
 
+## VPN-Restricted Environments (Proxy Solution)
+
+If your VPN blocks direct Docker-to-SAP connections, you can deploy a TCP proxy in AWS ECS to forward RFC traffic.
+
+### Architecture
+
+```
+┌─────────────────────┐      TCP/RFC      ┌─────────────────────┐     TCP/RFC     ┌────────────┐
+│  Your Mac (Docker)  │  ──────────────►  │  ECS Fargate Proxy  │  ────────────►  │    SAP     │
+│  ABAP Accelerator   │     Internet      │  (in AWS VPC)       │   Private VPC   │   System   │
+└─────────────────────┘                   └─────────────────────┘                 └────────────┘
+```
+
+### Quick Deploy
+
+```bash
+cd proxy
+
+# Set required environment variables
+export VPC_ID="vpc-xxxxxxxxx"              # VPC with SAP access
+export SUBNET_IDS="subnet-xxx,subnet-yyy"  # Public subnets
+export SAP_HOST="your-sap-system.company.com"
+export SAP_PORT="3300"                     # Optional, default 3300
+
+# Deploy the proxy
+./deploy-proxy.sh
+```
+
+### Update MCP Configuration
+
+After deployment, update `SAP_HOST` in your `mcp.json` to use the NLB endpoint:
+
+```json
+{
+  "mcpServers": {
+    "abap-accelerator-q": {
+      "command": "docker",
+      "args": [
+        "run", "--rm", "-i", "--platform", "linux/amd64",
+        "--mount", "type=bind,source=/path/to/.secrets,target=/run/secrets,readonly",
+        "-e", "SAP_HOST=sap-rfc-proxy-nlb-xxxx.elb.us-east-1.amazonaws.com",
+        "-e", "SAP_CLIENT=100",
+        "-e", "SAP_USERNAME=your_username",
+        "abap-accelerator-q-3.2.1-node22",
+        "node", "dist/index.js"
+      ]
+    }
+  }
+}
+```
+
+See [proxy/README.md](proxy/README.md) for detailed instructions, security considerations, and SSH tunnel alternatives.
+
+---
+
 ## Configuration Reference
 
 ### Environment Variables
