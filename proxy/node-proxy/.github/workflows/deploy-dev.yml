@@ -1,0 +1,55 @@
+# SAP RFC Proxy - Dev Deployment
+#
+# This workflow follows the same pattern as digital-margin-management-ui
+# using the shared workflows from Univar/digital-devops-shared-workflows
+#
+# Prerequisites:
+# 1. Create ECS task definition: sap-rfc-proxy-dev
+# 2. Configure task with environment variables:
+#    - SAP_TARGET_HOST: your-sap-system.company.com
+#    - SAP_TARGET_PORT: 3300 (or your SAP system number port)
+#    - LISTEN_PORT: 3300
+#    - HEALTH_CHECK_PORT: 8080
+#    - LOG_LEVEL: info
+# 3. Configure container port mappings: 3300:3300, 8080:8080
+# 4. Set up NLB or ALB to expose the service
+
+name: Deploy Dev
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  BuildVars:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: 'Echo build information'
+        run: |
+          echo "Triggered by: ${{ github.event_name }}"
+          echo "Branch/tag: ${{ github.ref }}"
+          echo "Commit SHA: ${{ github.sha }}"
+          echo "Repository: ${{ github.event.repository.name }}"
+          echo "Ref name: ${{ github.ref_name }}"
+
+  call-build-shared-workflow:
+    name: Build dev image
+    needs: BuildVars
+    uses: Univar/digital-devops-shared-workflows/.github/workflows/build_image.yml@main
+    with:
+      applicationName: ${{ github.event.repository.name }}
+    secrets: inherit
+
+  call-dev-shared-workflow:
+    name: Dev deploy
+    needs: call-build-shared-workflow
+    uses: Univar/digital-devops-shared-workflows/.github/workflows/ecs_deploy_dev.yml@main
+    concurrency: development
+    with:
+      ECS_TASK_DEFINITION: ${{ github.event.repository.name }}-dev
+      CONTAINER_NAME: ${{ github.event.repository.name }}-dev
+      applicationName: ${{ github.event.repository.name }}
+      environment: dev
+    secrets: inherit

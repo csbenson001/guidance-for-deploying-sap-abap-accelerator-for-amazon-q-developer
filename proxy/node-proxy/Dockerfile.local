@@ -1,0 +1,33 @@
+# SAP RFC TCP Proxy - Local Development Version
+#
+# Use this Dockerfile for local testing without access to internal ECR.
+# For production deployment, use the main Dockerfile with Chainguard base.
+#
+# Build: docker build -f Dockerfile.local -t sap-rfc-proxy:local .
+# Run:   docker run -e SAP_TARGET_HOST=sap.example.com -p 3300:3300 sap-rfc-proxy:local
+
+ARG BUILDPLATFORM=linux/amd64
+FROM --platform=$BUILDPLATFORM node:22-alpine AS base
+ENV NODE_ENV=production
+WORKDIR /app
+
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodejs -u 1001
+
+FROM base AS build
+COPY --chown=nodejs:nodejs package.json .
+COPY --chown=nodejs:nodejs . .
+
+FROM base
+COPY --from=build --chown=nodejs:nodejs /app /app
+
+EXPOSE 3300
+EXPOSE 8080
+
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD node -e "fetch('http://localhost:8080/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))" || exit 0
+
+USER nodejs
+
+ENTRYPOINT ["node", "server.mjs"]

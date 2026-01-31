@@ -1,0 +1,21 @@
+{
+  "name": "sap-rfc-proxy",
+  "version": "1.0.0",
+  "description": "TCP proxy for SAP RFC connections - enables local Docker to connect to SAP through AWS ECS",
+  "type": "module",
+  "main": "server.mjs",
+  "scripts": {
+    "start": "node server.mjs",
+    "dev": "node --watch server.mjs"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "sap",
+    "rfc",
+    "proxy",
+    "tcp"
+  ],
+  "license": "MIT"
+}

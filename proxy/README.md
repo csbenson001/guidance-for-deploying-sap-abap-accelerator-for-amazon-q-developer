@@ -2,6 +2,14 @@
 
 This solution enables you to run the ABAP Accelerator Docker container locally on your Mac while your VPN blocks direct Docker-to-SAP connections.
 
+## Choose Your Deployment Option
+
+| Option | Best For | Infrastructure Requirements |
+|--------|----------|----------------------------|
+| **[Standard (socat)](#quick-start)** | Full AWS access, can create CloudFormation stacks | Full AWS access |
+| **[Node.js Version](node-proxy/README.md)** | Restricted environments with shared workflows | Uses internal Chainguard base image, shared GitHub workflows |
+| **[SSH Tunnel](#alternative-ssh-tunnel)** | Simplest setup, existing bastion host | EC2 bastion with SSH access |
+
 ## Architecture
 
 ```
