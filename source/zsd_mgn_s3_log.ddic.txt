@@ -1,0 +1,102 @@
+*----------------------------------------------------------------------*
+* Table: ZSD_MGN_S3_LOG
+* Description: Margin Data S3 Upload Log
+*----------------------------------------------------------------------*
+* This table logs all S3 upload activities from the margin data API.
+* Use transaction SE11 to create this table in your SAP system.
+*----------------------------------------------------------------------*
+
+Table Name: ZSD_MGN_S3_LOG
+Description: Margin Data S3 Upload Log
+Delivery Class: A (Application Table)
+Data Class: APPL0
+Size Category: 0
+Buffering: Not allowed
+
+*----------------------------------------------------------------------*
+* Field Definitions
+*----------------------------------------------------------------------*
+
+Field Name       Key  Data Element/Type     Length  Description
+---------------  ---  -------------------   ------  --------------------------------
+MANDT            X    MANDT                 3       Client
+LOG_ID           X    SYSUUID_C32           32      Unique Log ID (GUID)
+UPLOAD_DATE           SYDATUM               8       Upload Date
+UPLOAD_TIME           SYUZEIT               6       Upload Time
+USERNAME              SYUNAME               12      User Name
+S3_BUCKET             CHAR255               255     S3 Bucket Name
+S3_KEY                CHAR1024              1024    S3 Object Key (Path/Filename)
+FILE_FORMAT           CHAR10                10      File Format (JSON/PIPE/FIXED)
+FILE_SIZE             INT4                  10      File Size in Bytes
+RECORD_COUNT          INT4                  10      Number of Records Uploaded
+HTTP_STATUS           INT4                  10      HTTP Response Status Code
+STATUS                CHAR1                 1       Status (S=Success, E=Error)
+MESSAGE               CHAR255               255     Status Message
+INFOPROVIDER          RSINFOPROV            30      InfoProvider
+QUERY                 RSZCOMPID             30      Query Name
+MARGIN_ANALYST        KUNNR                 10      Margin Analyst
+APPLICATION           CHAR50                50      Calling Application
+DURATION_MS           INT4                  10      Upload Duration in Milliseconds
+RETRY_COUNT           INT1                  3       Number of Retry Attempts
+CORRELATION_ID        CHAR36                36      Correlation ID for Tracing
+
+*----------------------------------------------------------------------*
+* Technical Settings
+*----------------------------------------------------------------------*
+Data Class: APPL0
+Size Category: 0
+Buffering: Not allowed (no buffering)
+Log Data Changes: No
+
+*----------------------------------------------------------------------*
+* Indexes
+*----------------------------------------------------------------------*
+Index 001 (ZSD_MGN_S3_LOG~001):
+  - UPLOAD_DATE
+  - STATUS
+
+Index 002 (ZSD_MGN_S3_LOG~002):
+  - INFOPROVIDER
+  - QUERY
+  - UPLOAD_DATE
+
+*----------------------------------------------------------------------*
+* ABAP Code to Create Table (Alternative)
+*----------------------------------------------------------------------*
+* If you prefer to create via code, use this structure definition:
+
+TYPES: BEGIN OF ty_zsd_mgn_s3_log,
+         mandt          TYPE mandt,
+         log_id         TYPE sysuuid_c32,
+         upload_date    TYPE sydatum,
+         upload_time    TYPE syuzeit,
+         username       TYPE syuname,
+         s3_bucket      TYPE char255,
+         s3_key         TYPE char1024,
+         file_format    TYPE char10,
+         file_size      TYPE int4,
+         record_count   TYPE int4,
+         http_status    TYPE int4,
+         status         TYPE char1,
+         message        TYPE char255,
+         infoprovider   TYPE rsinfoprov,
+         query          TYPE rszcompid,
+         margin_analyst TYPE kunnr,
+         application    TYPE char50,
+         duration_ms    TYPE int4,
+         retry_count    TYPE int1,
+         correlation_id TYPE char36,
+       END OF ty_zsd_mgn_s3_log.
+
+*----------------------------------------------------------------------*
+* TVARVC Configuration Required
+*----------------------------------------------------------------------*
+* The following TVARVC entries must be configured for S3 upload:
+*
+* Name                      Type  Description
+* ------------------------  ----  ------------------------------------
+* ZSD_MGN_S3_URL            P     S3 Gateway URL (e.g., https://your-api-gateway.execute-api.region.amazonaws.com/prod/)
+* ZSD_MGN_S3_API_KEY        P     API Key for authentication (X-API-Key header)
+* ZSD_MGN_S3_BUCKET         P     S3 Bucket name for logging purposes
+*
+* Use transaction STVARV to maintain these values.
